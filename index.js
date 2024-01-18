@@ -30,9 +30,22 @@ async function run() {
     // // Send a ping to confirm a successful connection
 
     const trainersCollection = client.db('KaFitnessTracker').collection('trainer');
+    const usersCollection = client.db('KaFitnessTracker').collection('users');
 
     app.get('/trainers', async (req, res) => {
         const result = await trainersCollection.find().toArray();
+        res.send(result);
+    })
+
+    // users related API
+    app.post('/users', async (req, res) => {
+        const user = req.body;
+        const query = {email: user.email};
+        const existingUser = await usersCollection.findOne(query);
+        if(existingUser){
+            return res.send({message:"user already exist", insertedId: null})
+        }
+        const result = await usersCollection.insertOne(user);
         res.send(result);
     })
 
