@@ -10,7 +10,6 @@ app.use(express.json());
 
 // KaFitnessTracker
 // UZCsHXs0mNMr3WmD
-console.log("User name and password", process.env.DB_USER, process.env.DB_PASS);
 
 const { MongoClient, ServerApiVersion } = require('mongodb');
 const uri = `mongodb+srv://${process.env.DB_USER}:${process.env.DB_PASS}@cluster0.52ba6.mongodb.net/?retryWrites=true&w=majority`;
@@ -30,7 +29,12 @@ async function run() {
     // await client.connect();
     // // Send a ping to confirm a successful connection
 
-    
+    const trainersCollection = client.db('KaFitnessTracker').collection('trainer');
+
+    app.get('/trainers', async (req, res) => {
+        const result = await trainersCollection.find().toArray();
+        res.send(result);
+    })
 
     // await client.db("admin").command({ ping: 1 });
     // console.log("Pinged your deployment. You successfully connected to MongoDB!");
