@@ -1,6 +1,7 @@
 const express = require('express');
 const app = express();
 const cors = require('cors');
+const jwt = require('jsonwebtoken');
 require('dotenv').config();
 const port = process.env.PORT || 5000;
 
@@ -8,8 +9,7 @@ const port = process.env.PORT || 5000;
 app.use(cors());
 app.use(express.json());
 
-// KaFitnessTracker
-// UZCsHXs0mNMr3WmD
+// console.log('token', process.env.ACCESS_TOKEN_SECRET);
 
 const { MongoClient, ServerApiVersion } = require('mongodb');
 const uri = `mongodb+srv://${process.env.DB_USER}:${process.env.DB_PASS}@cluster0.52ba6.mongodb.net/?retryWrites=true&w=majority`;
@@ -37,6 +37,12 @@ async function run() {
       const result = await trainersCollection.find().toArray();
       res.send(result);
     })
+    // jwt related api
+    app.post('/jwt', async (req, res) => {
+      const user = req.body;
+      const token = jwt.sign(user, process.env.ACCESS_TOKEN_SECRET, {expiresIn: '1h'});
+      res.send(token);
+    })
 
     // users related API
     app.post('/users', async (req, res) => {
@@ -50,19 +56,22 @@ async function run() {
       res.send(result);
     })
     // gallery related api
+    app.get('/gallery', async (req, res) => {
+
+    })
     app.get('/images', async (req, res) => {
       const { page } = req.query;
       const pageSize = 12;
       const skip = (page - 1) * pageSize;
       // const skip = pageSize;
 
-      const images = await galleryCollection.find().skip(skip).limit(pageSize).toArray();
-      res.send(images);
-      // try {
-      // } catch (error) {
-      //   console.error("Error fetching images:", error);
-      //   res.status(500).json({ error: "Internal Server Error" });
-      // }
+      try {
+        const images = await galleryCollection.find().skip(skip).limit(pageSize).toArray();
+        res.send(images);
+      } catch (error) {
+        console.error("Error fetching images:", error);
+        res.status(500).json({ error: "Internal Server Error" });
+      }
     })
 
     // await client.db("admin").command({ ping: 1 });
