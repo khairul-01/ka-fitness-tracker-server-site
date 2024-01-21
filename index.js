@@ -40,9 +40,17 @@ async function run() {
     // jwt related api
     app.post('/jwt', async (req, res) => {
       const user = req.body;
-      const token = jwt.sign(user, process.env.ACCESS_TOKEN_SECRET, {expiresIn: '1h'});
+      const token = jwt.sign(user, process.env.ACCESS_TOKEN_SECRET, { expiresIn: '1h' });
       res.send(token);
     })
+
+    // jwt related middleware
+    const verifyToken = (req, res, next) => {
+      console.log('inside verify token', req.headers.authorization);
+      if (!req.headers.authorization) {
+        return res.status(401).send({ message: "Unauthorized access" });
+      }
+    }
 
     // users related API
     app.post('/users', async (req, res) => {
@@ -57,7 +65,8 @@ async function run() {
     })
     // gallery related api
     app.get('/gallery', async (req, res) => {
-
+      const images = await galleryCollection.find().limit(12).toArray();
+      res.send(images);
     })
     app.get('/images', async (req, res) => {
       const { page } = req.query;
