@@ -33,6 +33,7 @@ async function run() {
     const usersCollection = client.db('KaFitnessTracker').collection('users');
     const galleryCollection = client.db('KaFitnessTracker').collection('gallery');
     const forumPostsCollection = client.db('KaFitnessTracker').collection('forumPosts');
+    const classesCollection = client.db('KaFitnessTracker').collection('classes');
 
     app.get('/trainers', async (req, res) => {
       const result = await trainersCollection.find().toArray();
@@ -99,6 +100,12 @@ async function run() {
     // Forum related api
     app.get('/forumPosts', async (req, res) => {
       const result = await forumPostsCollection.find().toArray();
+      res.send(result);
+    })
+
+    // class related api
+    app.get('/classes', async (req, res) => {
+      const result = await classesCollection.find().toArray();
       res.send(result);
     })
 
