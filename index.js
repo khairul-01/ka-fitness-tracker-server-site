@@ -34,6 +34,7 @@ async function run() {
     const usersCollection = client.db('KaFitnessTracker').collection('users');
     const galleryCollection = client.db('KaFitnessTracker').collection('gallery');
     const forumPostsCollection = client.db('KaFitnessTracker').collection('forumPosts');
+    const blogsCollection = client.db('KaFitnessTracker').collection('blogs');
     const classesCollection = client.db('KaFitnessTracker').collection('classes');
 
     app.get('/trainers', async (req, res) => {
@@ -83,6 +84,7 @@ async function run() {
       const images = await galleryCollection.find().limit(12).toArray();
       res.send(images);
     })
+    
     app.get('/images', async (req, res) => {
       const { page } = req.query;
       const pageSize = 12;
@@ -96,6 +98,11 @@ async function run() {
         console.error("Error fetching images:", error);
         res.status(500).json({ error: "Internal Server Error" });
       }
+    })
+    // blogs related api
+    app.get('/blogs', async (req, res) => {
+      const images = await blogsCollection.find().limit(12).toArray();
+      res.send(images);
     })
 
     // trainer related api
