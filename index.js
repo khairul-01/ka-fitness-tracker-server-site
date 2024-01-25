@@ -3,6 +3,7 @@ const app = express();
 const cors = require('cors');
 const jwt = require('jsonwebtoken');
 require('dotenv').config();
+const stripe = require("stripe")(process.env.STRIPE_SECRET_KEY)
 const port = process.env.PORT || 5000;
 
 // middleware
@@ -52,9 +53,21 @@ async function run() {
       if (!req.headers.authorization) {
         return res.status(401).send({ message: "Unauthorized access" });
       }
+      const token = req.headers.authorization.split(' ')[1];
+      jwt.verify(token, process.env.ACCESS_TOKEN_SECRET, (err, decoded) => {
+        if (err) {
+          return res.status(401).send({ message: 'Unauthorized access' })
+        }
+        req.decoded = decoded;
+        next();
+      })
     }
 
     // users related API
+    app.get('/users', async (req, res) => {
+      const result = await usersCollection.find().toArray();
+      res.send(result);
+    })
     app.post('/users', async (req, res) => {
       const user = req.body;
       const query = { email: user.email };
@@ -107,6 +120,22 @@ async function run() {
     app.get('/classes', async (req, res) => {
       const result = await classesCollection.find().toArray();
       res.send(result);
+    })
+
+    // Payment related API
+    app.post('/create-payment-intent', async (req, res) => {
+      const {price} = req.body;
+      const amount = parseInt(price*100);
+      console.log(amount , 'inside intent');
+      const paymentIntent = await stripe.paymentIntents.create({
+        amount: amount,
+        currency: 'aud',
+        payment_method_types: ['card']
+      });
+
+      res.send({
+        clientSecret: paymentIntent.client_secret,
+      })
     })
 
     // await client.db("admin").command({ ping: 1 });
