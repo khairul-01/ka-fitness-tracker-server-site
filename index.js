@@ -31,14 +31,22 @@ async function run() {
     // // Send a ping to confirm a successful connection
 
     const trainersCollection = client.db('KaFitnessTracker').collection('trainer');
+    const appliedTrainersCollection = client.db('KaFitnessTracker').collection('appliedTrainers');
     const usersCollection = client.db('KaFitnessTracker').collection('users');
     const galleryCollection = client.db('KaFitnessTracker').collection('gallery');
     const forumPostsCollection = client.db('KaFitnessTracker').collection('forumPosts');
     const blogsCollection = client.db('KaFitnessTracker').collection('blogs');
     const classesCollection = client.db('KaFitnessTracker').collection('classes');
+    const subscribersCollection = client.db('KaFitnessTracker').collection('subscribers');
 
+    // Trainer related api
     app.get('/trainers', async (req, res) => {
       const result = await trainersCollection.find().toArray();
+      res.send(result);
+    })
+    app.post('/appliedTrainers', async (req, res) => {
+      const trainer = req.body;
+      const result = await appliedTrainersCollection.insertOne(trainer);
       res.send(result);
     })
     // jwt related api
@@ -84,7 +92,7 @@ async function run() {
       const images = await galleryCollection.find().limit(12).toArray();
       res.send(images);
     })
-    
+
     app.get('/images', async (req, res) => {
       const { page } = req.query;
       const pageSize = 12;
@@ -101,8 +109,33 @@ async function run() {
     })
     // blogs related api
     app.get('/blogs', async (req, res) => {
-      const images = await blogsCollection.find().limit(12).toArray();
+      const images = await blogsCollection.find().toArray();
       res.send(images);
+    })
+
+    app.get('/blogs/:id', async (req, res) => {
+      const id = req.params.id;
+      const query = { _id: new ObjectId(id) };
+      const result = await blogsCollection.findOne(query);
+      res.send(result);
+    })
+
+    // subscription related api
+    app.post('/subscriber', async (req, res) => {
+      const subscriber = req.body;
+      console.log( "subscriber", subscriber);
+      const query = { email: subscriber.email };
+      const existingUser = await usersCollection.findOne(query);
+      if (existingUser) {
+        return res.send({ message: "user already exist", insertedId: null })
+      }
+      const result = await subscribersCollection.insertOne(subscriber);
+      res.send(result);
+    })
+
+    app.get("/subscriber", async (req, res) => {
+      const result = await subscribersCollection.find().toArray();
+      res.send(result);
     })
 
     // trainer related api
@@ -112,7 +145,7 @@ async function run() {
     })
     app.get('/trainers/:id', async (req, res) => {
       const id = req.params.id;
-      const query = {_id: new ObjectId(id)}
+      const query = { _id: new ObjectId(id) }
       const result = await trainersCollection.findOne(query);
       res.send(result);
     })
@@ -131,9 +164,9 @@ async function run() {
 
     // Payment related API
     app.post('/create-payment-intent', async (req, res) => {
-      const {price} = req.body;
-      const amount = parseInt(price*100);
-      console.log(amount , 'inside intent');
+      const { price } = req.body;
+      const amount = parseInt(price * 100);
+      console.log(amount, 'inside intent');
       const paymentIntent = await stripe.paymentIntents.create({
         amount: amount,
         currency: 'aud',
