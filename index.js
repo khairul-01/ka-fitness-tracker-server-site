@@ -49,6 +49,10 @@ async function run() {
       const result = await appliedTrainersCollection.insertOne(trainer);
       res.send(result);
     })
+    app.get('/appliedTrainers', async (req, res) => {
+      const result = await appliedTrainersCollection.find().toArray();
+      res.send(result);
+    })
     // jwt related api
     app.post('/jwt', async (req, res) => {
       const user = req.body;
